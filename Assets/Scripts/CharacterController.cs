@@ -16,7 +16,7 @@ namespace PeekMee.Friends.Character
         [SerializeField] private Transform _groundCheck;
         [SerializeField] private Transform _ceilingCheck;
         [SerializeField] private Transform _ladderCheck;
-        [SerializeField] private Collider2D _crouchDisableCollider;
+        [SerializeField] private Collider2D _crouchDisableCollider; 
 
         enum CharacterFacing { RIGHT, LEFT }
 
