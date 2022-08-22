@@ -12,14 +12,17 @@ namespace PeekMee.Friends.Character
         [Range(0, .25f)] [SerializeField] private float _movementSmoothness = .05f;
         [SerializeField] private bool _allowedAirControl = false;
         [SerializeField] private LayerMask _whatIsGround;
+        [SerializeField] private LayerMask _whatIsLadder;
         [SerializeField] private Transform _groundCheck;
         [SerializeField] private Transform _ceilingCheck;
+        [SerializeField] private Transform _ladderCheck;
         [SerializeField] private Collider2D _crouchDisableCollider;
 
         enum CharacterFacing { RIGHT, LEFT }
 
         const float GROUNDED_RADIUS = .25f;
         const float CEILING_RADIUS = .25f;
+        const float LADDER_RADIUS = .3f;
         private bool _isGrounded;
         private Rigidbody2D _rigidBody;
         private CharacterFacing _facing = CharacterFacing.RIGHT;
@@ -59,8 +62,26 @@ namespace PeekMee.Friends.Character
             }
         }
 
-        private void Move(float _move, bool _crouch, bool _jump)
+        public void Move(float _horizontalMove, float _verticalMove, bool _crouch, bool _jump)
         {
+            bool _isAllowedtoMoveVertically = false;
+
+            if (_verticalMove != 0)
+            {
+                if (Physics2D.OverlapCircle(_ladderCheck.position,
+                    LADDER_RADIUS, _whatIsLadder))
+                {
+                    _isAllowedtoMoveVertically = true;
+                    _rigidBody.simulated = false;
+                }
+                else
+                {
+                    _rigidBody.simulated = true;
+                }
+                    
+
+            }
+
             if (!_crouch)
             {
                 if (Physics2D.OverlapCircle(_ceilingCheck.position,
@@ -78,7 +99,7 @@ namespace PeekMee.Friends.Character
                     OnCrouchEvent?.Invoke(true);
                 }
 
-                _move *= _crouchSpeed;
+                _horizontalMove *= _crouchSpeed;
 
                 if (_crouchDisableCollider != null) 
                     _crouchDisableCollider.enabled = false;
@@ -94,14 +115,30 @@ namespace PeekMee.Friends.Character
                     OnCrouchEvent?.Invoke(false);
                 }
             }
+            Vector3 _targetVelocity = Vector3.zero;
+            _targetVelocity.x = _horizontalMove * 10f;
+
+            switch (_isAllowedtoMoveVertically)
+            {
+                case true:
+                    _targetVelocity.x = _horizontalMove / 100f;
+                    _targetVelocity.y = _verticalMove * 10f;
+                    print(_targetVelocity);
+                    transform.Translate(_targetVelocity);
+                    break;
+                case false:
+                    _targetVelocity.y = _rigidBody.velocity.y;
+                    _rigidBody.velocity = Vector3.SmoothDamp(_rigidBody.velocity, 
+                        _targetVelocity, ref _velocity, _movementSmoothness);
+                    break;
+            }
 
             // Move
-            Vector3 _targetVelocity = new Vector2(_move * 10f, _rigidBody.velocity.y);
-            _rigidBody.velocity = Vector3.SmoothDamp(_rigidBody.velocity, _targetVelocity,
-                ref _velocity, _movementSmoothness);
+            //Vector3 _targetVelocity = new Vector2(_horizontalMove * 10f, _rigidBody.velocity.y);
+            
 
-            if (_move > 0 && _facing == CharacterFacing.LEFT) Flip();
-            else if (_move < 0 && _facing == CharacterFacing.RIGHT) Flip();
+            if (_horizontalMove > 0 && _facing == CharacterFacing.LEFT) Flip();
+            else if (_horizontalMove < 0 && _facing == CharacterFacing.RIGHT) Flip();
 
             if (_isGrounded && _jump)
             {
@@ -122,7 +159,7 @@ namespace PeekMee.Friends.Character
                     break;
             }
 
-            Vector3 _localScale = transform.localPosition;
+            Vector3 _localScale = transform.localScale;
             _localScale.x *= -1;
             transform.localScale = _localScale;
         }
