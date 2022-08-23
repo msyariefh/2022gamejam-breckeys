@@ -24,6 +24,7 @@ namespace PeekMee.Friends.Character
         const float CEILING_RADIUS = .25f;
         const float LADDER_RADIUS = .3f;
         private bool _isGrounded;
+        private bool _isClimbing;
         private Rigidbody2D _rigidBody;
         private CharacterFacing _facing = CharacterFacing.RIGHT;
         private Vector3 _velocity = Vector3.zero;
@@ -60,26 +61,49 @@ namespace PeekMee.Friends.Character
                     if (!_wasGrounded) OnLandEvent?.Invoke();
                 }
             }
+
+            
+            _isClimbing = false;
+
+            Collider2D[] colls2 = Physics2D.OverlapCircleAll(_ladderCheck.position,
+                LADDER_RADIUS, _whatIsLadder);
+            for (int i = 0; i < colls2.Length; i++)
+            {
+                if (colls2[i].gameObject != gameObject)
+                {
+                    _isClimbing = true;
+                }
+            }
         }
 
         public void Move(float _horizontalMove, float _verticalMove, bool _crouch, bool _jump)
         {
             bool _isAllowedtoMoveVertically = false;
 
-            if (_verticalMove != 0)
-            {
-                if (Physics2D.OverlapCircle(_ladderCheck.position,
-                    LADDER_RADIUS, _whatIsLadder))
-                {
-                    _isAllowedtoMoveVertically = true;
-                    _rigidBody.simulated = false;
-                }
-                else
-                {
-                    _rigidBody.simulated = true;
-                }
+            //if (_verticalMove != 0)
+            //{
+            //    if (Physics2D.OverlapCircle(_ladderCheck.position,
+            //        LADDER_RADIUS, _whatIsLadder))
+            //    {
+            //        _isAllowedtoMoveVertically = true;
+            //        _rigidBody.simulated = false;
+            //    }
+            //    else
+            //    {
+            //        _rigidBody.simulated = true;
+            //    }
                     
 
+            //}
+            if (Physics2D.OverlapCircle(_ladderCheck.position,
+                    LADDER_RADIUS, _whatIsLadder))
+            {
+                _isAllowedtoMoveVertically = true;
+                _rigidBody.simulated = false;
+            }
+            else
+            {
+                _rigidBody.simulated = true;
             }
 
             if (!_crouch)
@@ -116,17 +140,20 @@ namespace PeekMee.Friends.Character
                 }
             }
             Vector3 _targetVelocity = Vector3.zero;
-            _targetVelocity.x = _horizontalMove * 10f;
+            _targetVelocity.x = _horizontalMove * 10.0f;
+            //print($"{_targetVelocity.x} | {_horizontalMove}");
 
-            switch (_isAllowedtoMoveVertically)
+            switch (_isClimbing)
             {
                 case true:
-                    _targetVelocity.x = _horizontalMove / 100f;
+                    print("true ladder");
+                    _targetVelocity.x = _horizontalMove/5f;
+
                     _targetVelocity.y = _verticalMove * 10f;
-                    print(_targetVelocity);
                     transform.Translate(_targetVelocity);
                     break;
                 case false:
+                    print("false ladder");
                     _targetVelocity.y = _rigidBody.velocity.y;
                     _rigidBody.velocity = Vector3.SmoothDamp(_rigidBody.velocity, 
                         _targetVelocity, ref _velocity, _movementSmoothness);

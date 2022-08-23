@@ -6,7 +6,7 @@ namespace PeekMee.Friends.Character
 {
     public class PlayerMovement : MonoBehaviour
     {
-        [SerializeField] private CharacterController _controller;
+        [SerializeField] private Controller2D _controller;
         [SerializeField] private float _runSpeed;
         [SerializeField] private float _climbSpeed;
         private bool _jump;
@@ -27,6 +27,7 @@ namespace PeekMee.Friends.Character
             _horizontalMove = Input.GetAxisRaw("Horizontal") * _runSpeed;
             _verticalMove = Input.GetAxisRaw("Vertical") * _climbSpeed;
 
+            //print(_horizontalMove);
             if (Input.GetKeyDown(KeyCode.Space)) _jump = true;
             if (Input.GetKeyDown(KeyCode.RightShift) ||
                 Input.GetKeyDown(KeyCode.LeftShift)) _crouch = true;
