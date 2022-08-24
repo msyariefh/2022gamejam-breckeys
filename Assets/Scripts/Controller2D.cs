@@ -8,6 +8,7 @@ namespace PeekMee.Friends.Character
         [Header("Layers")]
         [SerializeField] private LayerMask _whatIsGround;
         [SerializeField] private LayerMask _whatIsLadder;
+        //[SerializeField] private LayerMask _whatIsNonSolid;
 
         [Header("Transfrom for Physics Check")]
         [SerializeField] private Transform _upCheck;
